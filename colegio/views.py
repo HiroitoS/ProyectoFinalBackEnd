@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .models import Curso, Usuario, Calificacion
 from .serializers import CursoSerializer,CalificacionSerializer
 from rest_framework import status
+from django.db.models import Avg
 
 
 
@@ -75,7 +76,7 @@ class CursoControlador(APIView):
                     'message':'No se encontro el curso'
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            Curso.obsjects.filter(id = id).delete()
+            Curso.objects.filter(id = id).delete()
 
             return Response(data={
                 'message':'El curso se elimino exitosamente'
@@ -112,6 +113,34 @@ def listadoDeNotas(request, id):
              'content': serializador.data
         })
 
-@api_view(http_method_names=['POST'])
-def crearAlumno(request):
-     
+
+@api_view(http_method_names=['GET'])
+def estadoDeAlumnos(request, id):
+    # Obtener el ID del curso desde los parámetros de la URL
+    
+    
+    # Filtrar las calificaciones para el curso dado
+    notas = Calificacion.objects.filter(cursoId=id)
+    
+    # Verificar si hay calificaciones para el curso dado
+    if notas.exists():
+        # Calcular el promedio de pc1, pc2, pc3 y examenFinal
+        promedio_notas = notas.aggregate(
+            promedio=(Avg('pc1') + Avg('pc2') + Avg('pc3') + Avg('examenFinal')) / 4
+        ).get('promedio')
+        
+        # Determinar el estado del alumno según el promedio
+        if promedio_notas >= 12:  # Cambié el umbral a 12 según tu criterio
+            estado = 'Aprobado'
+        else:
+            estado = 'Reprobado'
+            
+        return Response({
+            'message': f'El alumno está {estado}',
+            'promedio': promedio_notas
+        })
+    else:
+        # No se encontraron calificaciones para el curso dado
+        return Response({
+            'message': 'No se encontraron calificaciones para este curso.'
+        }, status=404)

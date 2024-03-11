@@ -3,12 +3,14 @@ from .views import (ControlInicial,
                     CursosContorl,
                     CursoControlador,
                     CalificacionesController,
-                    listadoDeNotas)
+                    listadoDeNotas,
+                    estadoDeAlumnos)
 
 urlpatterns = [
     path('inicio/', view=ControlInicial),
     path('cursos/', view=CursosContorl.as_view()),
     path('curso/<int:id>', view=CursoControlador.as_view()),
     path('calificaciones/', view=CalificacionesController.as_view()),
-    path('curso/<int:id>/calificaciones/', view=listadoDeNotas)
+    path('curso/<int:id>/calificaciones/', view=listadoDeNotas),
+    path('promedio/<int:id>/', view=estadoDeAlumnos)
 ] 
